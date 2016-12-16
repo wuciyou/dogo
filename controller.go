@@ -1,10 +1,10 @@
-package thinkgo
+package dogo
 
 import (
 	"net/http"
 )
 
-type thinkController interface {
+type dogoController interface {
 	handler(http.ResponseWriter, *http.Request)
 }
 
@@ -16,5 +16,6 @@ type BaseController struct {
 }
 
 func (c *BaseController) handler(response http.ResponseWriter, request *http.Request) {
+
 	response.Write([]byte("wuciyou hello word"))
 }

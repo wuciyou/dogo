@@ -1,6 +1,6 @@
-package thinkgo
+package dogo
 
-type thinkConfig struct {
+type dogoConfig struct {
 	Port     string
 	RunLevel runLevel
 }
@@ -14,9 +14,9 @@ const (
 	RUN_ERROR
 )
 
-var RunTimeConfig thinkConfig
+var RunTimeConfig dogoConfig
 
-func (c thinkConfig) IsDebug() bool {
+func (c dogoConfig) IsDebug() bool {
 	return c.RunLevel == RUN_DEBUG
 }
 
