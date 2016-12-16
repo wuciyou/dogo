@@ -1,7 +1,6 @@
 package dogo
 
 import (
-	"log"
 	"net/http"
 )
 
@@ -79,7 +78,7 @@ func (p *pipeline) AddAfter(afterName string, name string, handle PipelineHandle
 		tempPipelineNode.next.prev = node
 		tempPipelineNode.next = node
 	} else {
-		log.Panicf("Can't found name[%s] on the pipeline\n ", afterName)
+		DogoLog.Panicf("Can't found name[%s] on the pipeline\n ", afterName)
 	}
 }
 
@@ -94,13 +93,13 @@ func (p *pipeline) AddBefore(beforeName string, name string, handle PipelineHand
 		tempPipelineNode.prev = node
 
 	} else {
-		log.Panicf("Can't found name[%s] on the pipeline\n ", beforeName)
+		DogoLog.Panicf("Can't found name[%s] on the pipeline\n ", beforeName)
 	}
 }
 
 func (p *pipeline) checkName(name string) {
 	if node := p.getByName(name); node != nil {
-		log.Panicf("The same key[%s] already exists", name)
+		DogoLog.Panicf("The same key[%s] already exists", name)
 	}
 }
 
@@ -116,26 +115,30 @@ func (p *pipeline) getByName(name string) *pipelineNode {
 	return tempPipeline
 }
 
-func (p *pipeline) each(f func(*pipelineNode) bool) {
-	f(p.firsetNode)
+func (p *pipeline) each(f func(*pipelineNode) bool) bool {
+	if !f(p.firsetNode) {
+		return false
+	}
 	each := p.firsetNode
 	for {
 		if next := each.next; next != nil {
 
 			each = next
 			if next == p.firsetNode {
-				return
+				return true
 			}
 
 			is_break := f(each)
 			if !is_break {
-				break
+				return false
 			}
 
 		} else {
 			break
 		}
 	}
+
+	return true
 
 }
 

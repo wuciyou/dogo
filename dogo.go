@@ -2,33 +2,69 @@ package dogo
 
 import (
 	"github.com/wuciyou/dogo/pipelines"
-	"log"
 	"net/http"
+	"sync"
 )
 
 type dogo struct {
 	serveMux *http.ServeMux
+	mu       sync.RWMutex
+	router   map[string]ContextHandle
 }
 
 var DoGo *dogo
 
-func (t *dogo) Router(pattern string, controller dogoController) {
-	t.serveMux.HandleFunc(pattern, controller.handler)
+func (d *dogo) setRouter(pattern string, ch ContextHandle) {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
+	d.router[pattern] = ch
 }
 
-func (t *dogo) handler(response http.ResponseWriter, request *http.Request) {
-	_, pattern := t.serveMux.Handler(request)
+func (d *dogo) getRouter(pattern string) ContextHandle {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
 
-	if RunTimeConfig.IsDebug() {
-		log.Printf("pattern:%s \n ", pattern)
+	if c, ok := d.router[pattern]; ok {
+		return c
+	} else {
+		return nil
 	}
-	log.Printf("Commonpipeline:%+v \n", Commonpipeline)
-	Commonpipeline.each(func(pipelin *pipelineNode) bool {
-		log.Printf("start call PipelineRun by name [%s] \n ", pipelin.name)
+}
+
+func (d *dogo) Router(pattern string, ch ContextHandle) {
+
+	if d.getRouter(pattern) != nil {
+		DogoLog.Panicf("The pattern[%s] already exists in the Router", pattern)
+	}
+	d.setRouter(pattern, ch)
+
+}
+
+func (d *dogo) handler(response http.ResponseWriter, request *http.Request) {
+	ch := d.getRouter(request.URL.Path)
+
+	if ch == nil {
+		http.NotFound(response, request)
+		return
+	}
+	if RunTimeConfig.IsDebug() {
+		DogoLog.Printf("pattern:%s \n ", request.URL.Path)
+	}
+
+	checkpipelin := Commonpipeline.each(func(pipelin *pipelineNode) bool {
+		if RunTimeConfig.IsDebug() {
+			DogoLog.Printf("start call PipelineRun by name [%s]", pipelin.name)
+		}
 		return pipelin.h.PipelineRun(response, request)
 	})
+	if !checkpipelin {
+		return
+	}
+	context := &Context{}
+	context.parse(response, request)
+	ch(context)
 
-	t.serveMux.ServeHTTP(response, request)
 }
 
 // start servers
@@ -48,14 +84,11 @@ func (t *dogo) start() {
 }
 
 func initConfig() {
-	if RunTimeConfig.Port == "" {
-		RunTimeConfig.Port = "8080"
-	}
 	if RunTimeConfig.IsDebug() {
-		log.Printf("ThinkGo default config: %+v \n ", RunTimeConfig)
+		DogoLog.Printf("ThinkGo default config: %+v \n ", RunTimeConfig)
 	}
 }
 
 func init() {
-	DoGo = &dogo{serveMux: http.NewServeMux()}
+	DoGo = &dogo{serveMux: http.NewServeMux(), router: make(map[string]ContextHandle)}
 }
