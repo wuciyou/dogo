@@ -24,13 +24,14 @@ func (p *pipeline) AddLast(name PipelineKey, handle PipelineHandle) {
 	p.checkName(name)
 	node := &pipelineNode{name: name, h: handle}
 	p.pipelineNode = append(p.pipelineNode, node)
-
+	DogoLog.Debugf("Add pipelineHandle to last for name[%s],pipelineNode:%+v", name, p.pipelineNode)
 }
 
 func (p *pipeline) AddFirst(name PipelineKey, handle PipelineHandle) {
 	p.checkName(name)
 	node := &pipelineNode{name: name, h: handle}
 	p.pipelineNode = append([]*pipelineNode{node}, p.pipelineNode...)
+	DogoLog.Debugf("Add pipelineHandle to first for name[%s]", name)
 }
 
 func (p *pipeline) AddAfter(afterName PipelineKey, name PipelineKey, handle PipelineHandle) {
@@ -43,9 +44,9 @@ func (p *pipeline) AddAfter(afterName PipelineKey, name PipelineKey, handle Pipe
 		} else {
 			p.pipelineNode = append(p.pipelineNode[:i+1], append([]*pipelineNode{node}, p.pipelineNode[i+1:]...)...)
 		}
-
+		DogoLog.Debugf("Add pipelineHandle to name[%s] after for name[%s]", afterName, name)
 	} else {
-		DogoLog.Panicf("Can't found name[%s] on the pipeline\n ", afterName)
+		DogoLog.Errorf("Can't found name[%s] on the pipeline\n ", afterName)
 	}
 }
 
@@ -53,15 +54,15 @@ func (p *pipeline) AddBefore(beforeName PipelineKey, name PipelineKey, handle Pi
 	if tempPipelineNode, i := p.getByName(beforeName); tempPipelineNode != nil {
 		node := &pipelineNode{name: name, h: handle}
 		p.pipelineNode = append(p.pipelineNode[:i], append([]*pipelineNode{node}, p.pipelineNode[i:]...)...)
-
+		DogoLog.Debugf("Add pipelineHandle to name[%s] before for name[%s]", beforeName, name)
 	} else {
-		DogoLog.Panicf("Can't found name[%s] on the pipeline\n ", beforeName)
+		DogoLog.Errorf("Can't found name[%s] on the pipeline\n ", beforeName)
 	}
 }
 
 func (p *pipeline) checkName(name PipelineKey) {
 	if node, _ := p.getByName(name); node != nil {
-		DogoLog.Panicf("The same key[%s] already exists", name)
+		DogoLog.Errorf("The same key[%s] already exists", name)
 	}
 }
 

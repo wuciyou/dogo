@@ -13,11 +13,7 @@ var DoGo *dogo
 func (d *dogo) handler(response http.ResponseWriter, request *http.Request) {
 
 	checkpipelin := Commonpipeline.each(func(pipelin *pipelineNode) bool {
-		if RunTimeConfig.IsDebug() {
-			DogoLog.Printf("start call PipelineRun by name [%s]", pipelin.name)
-		}
-
-		DogoLog.Printf("pipelin.h:%+v \n", pipelin.h.PipelineRun)
+		DogoLog.Debugf("Start call PipelineRun by name [%s]", pipelin.name)
 
 		return pipelin.h.PipelineRun(response, request)
 	})
@@ -29,6 +25,15 @@ func (d *dogo) handler(response http.ResponseWriter, request *http.Request) {
 
 // start servers
 func Start() {
+	// 添加日志记录
+	dogo_log := &LogPipeline{}
+	Commonpipeline.AddFirst(PIPELINE_LOG, dogo_log)
+
+	// 添加路由解析
+	context := &PipelineContext{}
+	Commonpipeline.AddLast(PIPELINE_CONTEXT, context)
+
+	DogoLog.Infof("Start Dogo in the port:%s", RunTimeConfig.Port)
 	DoGo.start()
 }
 
@@ -41,13 +46,4 @@ func (t *dogo) start() {
 
 func init() {
 	DoGo = &dogo{serveMux: http.NewServeMux()}
-
-	// 添加日志记录
-	dogo_log := &LogPipeline{}
-	Commonpipeline.AddFirst(PIPELINE_LOG, dogo_log)
-
-	// 添加路由解析
-	context := &PipelineContext{}
-	Commonpipeline.AddLast(PIPELINE_CONTEXT, context)
-
 }

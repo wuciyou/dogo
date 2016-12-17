@@ -7,15 +7,6 @@ type dogoConfig struct {
 	RunLevel runLevel
 }
 
-type runLevel int
-
-const (
-	RUN_INFO runLevel = iota
-	RUN_WARNING
-	RUN_DEBUG
-	RUN_ERROR
-)
-
 var RunTimeConfig dogoConfig
 
 func (c dogoConfig) IsDebug() bool {

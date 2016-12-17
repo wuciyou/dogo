@@ -34,7 +34,7 @@ func (r *muxEntry) set(pattern string, method HttpMethod, ch ContextHandle) {
 	pattern = strings.TrimSpace(pattern)
 
 	if _, ok := r.routerMap[pattern]; ok {
-		DogoLog.Panicf("The pattern[%s] already exists in the Router", pattern)
+		DogoLog.Errorf("The pattern[%s] already exists in the Router", pattern)
 		return
 	}
 	rc := &routerContainer{method: method, ch: ch}
