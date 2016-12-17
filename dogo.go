@@ -20,19 +20,23 @@ func (d *dogo) handler(response http.ResponseWriter, request *http.Request) {
 	if !checkpipelin {
 		return
 	}
-
 }
 
 // start servers
 func Start() {
 	// 添加日志记录
-	dogo_log := &LogPipeline{}
-	Commonpipeline.AddFirst(PIPELINE_LOG, dogo_log)
+	request_log := &PipelineLog{}
+	Commonpipeline.AddFirst(PIPELINE_LOG, request_log)
 
 	// 添加路由解析
-	context := &PipelineContext{}
+	context := &pipelineContext{}
 	Commonpipeline.AddLast(PIPELINE_CONTEXT, context)
 
+	if RunTimeConfig.UserSession {
+		// UserSession
+		session := &pipelineSession{}
+		Commonpipeline.AddFirst(PIPELINE_SESSION, session)
+	}
 	DogoLog.Infof("Start Dogo in the port:%s", RunTimeConfig.Port)
 	DoGo.start()
 }

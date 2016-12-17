@@ -18,10 +18,10 @@ func (c *Context) parse(response http.ResponseWriter, request *http.Request) {
 
 }
 
-type PipelineContext struct {
+type pipelineContext struct {
 }
 
-func (c *PipelineContext) PipelineRun(response http.ResponseWriter, request *http.Request) bool {
+func (c *pipelineContext) PipelineRun(response http.ResponseWriter, request *http.Request) bool {
 	routerContainer, _ := router.match(request.URL.Path)
 	if routerContainer == nil {
 		http.NotFound(response, request)
