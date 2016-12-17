@@ -11,7 +11,7 @@ type dogo struct {
 var DoGo *dogo
 
 func (d *dogo) handler(response http.ResponseWriter, request *http.Request) {
-
+	request.ParseForm()
 	checkpipelin := Commonpipeline.each(func(pipelin *pipelineNode) bool {
 		DogoLog.Debugf("Start call PipelineRun by name [%s]", pipelin.name)
 

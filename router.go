@@ -17,11 +17,11 @@ type muxEntry struct {
 
 var router = &muxEntry{routerMap: make(map[string]*routerContainer)}
 
-func (r *muxEntry) match(path string) (ContextHandle, string) {
+func (r *muxEntry) match(path string) (*routerContainer, string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if rc, ok := r.routerMap[path]; ok {
-		return rc.ch, path
+		return rc, path
 	}
 
 	return nil, path
