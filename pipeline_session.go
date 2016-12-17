@@ -12,7 +12,7 @@ func (s *pipelineSession) PipelineRun(response http.ResponseWriter, request *htt
 	cookie, err := request.Cookie(RunTimeConfig.SessionName)
 	if err != nil {
 		if err == http.ErrNoCookie {
-			DogoLog.Debug("SessionName not present in the cookie")
+			DogoLog.Debug("SessionName not present in the cookie ")
 			SessionNameid := "wuciyourqyqqqq"
 			DogoLog.Debugf("Reset SessionName[%s] to cookie ", SessionNameid)
 
