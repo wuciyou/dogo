@@ -20,9 +20,7 @@ type PipelineContext struct {
 }
 
 func (c *PipelineContext) PipelineRun(response http.ResponseWriter, request *http.Request) bool {
-
 	ch, _ := router.match(request.URL.Path)
-	DogoLog.Printf("ch:%+v \n", ch)
 	if ch == nil {
 		http.NotFound(response, request)
 		return false
