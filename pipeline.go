@@ -9,139 +9,86 @@ type PipelineHandle interface {
 }
 
 type pipelineNode struct {
-	name string
+	name PipelineKey
 	h    PipelineHandle
-	prev *pipelineNode
-	next *pipelineNode
 }
 
 type pipeline struct {
 	pipelineNodeSize int
-	firsetNode       *pipelineNode
+	pipelineNode     []*pipelineNode
 }
 
-var Commonpipeline *pipeline
+var Commonpipeline = &pipeline{}
 
-func (p *pipeline) AddLast(name string, handle PipelineHandle) {
-	if p.firsetNode == nil {
-		node := &pipelineNode{name: name, h: handle}
-		p.firsetNode = node
-	} else {
-		p.checkName(name)
-		node := &pipelineNode{name: name, h: handle}
+func (p *pipeline) AddLast(name PipelineKey, handle PipelineHandle) {
+	p.checkName(name)
+	node := &pipelineNode{name: name, h: handle}
+	p.pipelineNode = append(p.pipelineNode, node)
 
-		if p.firsetNode.prev != nil {
-			node.prev = p.firsetNode.prev
-			p.firsetNode.prev.next = node
-		}
-		if p.firsetNode.next == nil {
-			node.prev = p.firsetNode
-			p.firsetNode.next = node
-		}
-
-		p.firsetNode.prev = node
-		node.next = p.firsetNode
-
-	}
 }
 
-func (p *pipeline) AddFirst(name string, handle PipelineHandle) {
-	if p.firsetNode == nil {
-		node := &pipelineNode{name: name, h: handle}
-		p.firsetNode = node
-	} else {
-		p.checkName(name)
-		node := &pipelineNode{name: name, h: handle}
-
-		if p.firsetNode.prev != nil {
-			p.firsetNode.prev.next = node
-			node.prev = p.firsetNode.prev
-		}
-
-		if p.firsetNode.next == nil {
-			p.firsetNode.next = node
-		}
-
-		node.next = p.firsetNode
-		p.firsetNode.prev = node
-		p.firsetNode = node
-	}
+func (p *pipeline) AddFirst(name PipelineKey, handle PipelineHandle) {
+	p.checkName(name)
+	node := &pipelineNode{name: name, h: handle}
+	p.pipelineNode = append([]*pipelineNode{node}, p.pipelineNode...)
 }
 
-func (p *pipeline) AddAfter(afterName string, name string, handle PipelineHandle) {
-	if tempPipelineNode := p.getByName(afterName); tempPipelineNode != nil {
+func (p *pipeline) AddAfter(afterName PipelineKey, name PipelineKey, handle PipelineHandle) {
+	if tempPipelineNode, i := p.getByName(afterName); tempPipelineNode != nil {
 		node := &pipelineNode{name: name, h: handle}
 
-		node.next = tempPipelineNode.next
-		node.prev = tempPipelineNode
+		pipelineNodeSize := len(p.pipelineNode)
+		if i == pipelineNodeSize-1 {
+			p.pipelineNode = append(p.pipelineNode, node)
+		} else {
+			p.pipelineNode = append(p.pipelineNode[:i+1], append([]*pipelineNode{node}, p.pipelineNode[i+1:]...)...)
+		}
 
-		tempPipelineNode.next.prev = node
-		tempPipelineNode.next = node
 	} else {
 		DogoLog.Panicf("Can't found name[%s] on the pipeline\n ", afterName)
 	}
 }
 
-func (p *pipeline) AddBefore(beforeName string, name string, handle PipelineHandle) {
-	if tempPipelineNode := p.getByName(beforeName); tempPipelineNode != nil {
+func (p *pipeline) AddBefore(beforeName PipelineKey, name PipelineKey, handle PipelineHandle) {
+	if tempPipelineNode, i := p.getByName(beforeName); tempPipelineNode != nil {
 		node := &pipelineNode{name: name, h: handle}
-
-		node.prev = tempPipelineNode.prev
-		node.next = tempPipelineNode
-
-		tempPipelineNode.prev.next = node
-		tempPipelineNode.prev = node
+		p.pipelineNode = append(p.pipelineNode[:i], append([]*pipelineNode{node}, p.pipelineNode[i:]...)...)
 
 	} else {
 		DogoLog.Panicf("Can't found name[%s] on the pipeline\n ", beforeName)
 	}
 }
 
-func (p *pipeline) checkName(name string) {
-	if node := p.getByName(name); node != nil {
+func (p *pipeline) checkName(name PipelineKey) {
+	if node, _ := p.getByName(name); node != nil {
 		DogoLog.Panicf("The same key[%s] already exists", name)
 	}
 }
 
-func (p *pipeline) getByName(name string) *pipelineNode {
+func (p *pipeline) getByName(name PipelineKey) (*pipelineNode, int) {
 	var tempPipeline *pipelineNode
+	var index int
 	p.each(func(n *pipelineNode) bool {
 		if n.name == name {
 			tempPipeline = n
+			return false
+		} else {
+			index++
 		}
 		return true
-
 	})
-	return tempPipeline
+	return tempPipeline, index
 }
 
 func (p *pipeline) each(f func(*pipelineNode) bool) bool {
-	if !f(p.firsetNode) {
-		return false
-	}
-	each := p.firsetNode
-	for {
-		if next := each.next; next != nil {
-
-			each = next
-			if next == p.firsetNode {
-				return true
-			}
-
-			is_break := f(each)
-			if !is_break {
-				return false
-			}
-
-		} else {
-			break
+	for i := 0; i < len(p.pipelineNode); i++ {
+		if p.pipelineNode[i] == nil {
+			continue
+		}
+		is_break := f(p.pipelineNode[i])
+		if !is_break {
+			return false
 		}
 	}
-
 	return true
-
-}
-
-func init() {
-	Commonpipeline = &pipeline{}
 }

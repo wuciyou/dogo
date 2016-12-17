@@ -1,9 +1,10 @@
 package dogo
 
 type dogoConfig struct {
-	Port             string
-	ControllerSuffix string
-	RunLevel         runLevel
+	// 运行端口
+	Port string
+	// 运行级别
+	RunLevel runLevel
 }
 
 type runLevel int
@@ -24,5 +25,4 @@ func (c dogoConfig) IsDebug() bool {
 func init() {
 	RunTimeConfig.RunLevel = RUN_DEBUG
 	RunTimeConfig.Port = "8080"
-	RunTimeConfig.ControllerSuffix = "Controller"
 }

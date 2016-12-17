@@ -1,14 +1,13 @@
 package dogo
 
 import (
-	"github.com/wuciyou/dogo/pipelines"
 	"testing"
 )
 
 var pipelineArr = []string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "n", "m", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"}
 
 func TestAdd(t *testing.T) {
-	log := &pipelines.LogPipeline{}
+	log := &LogPipeline{}
 	Commonpipeline.AddLast("d", log)
 	Commonpipeline.AddLast("e", log)
 	Commonpipeline.AddLast("f", log)
