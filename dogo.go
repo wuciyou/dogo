@@ -2,6 +2,7 @@ package dogo
 
 import (
 	"net/http"
+	"time"
 )
 
 type dogo struct {
@@ -11,12 +12,30 @@ type dogo struct {
 var DoGo *dogo
 
 func (d *dogo) handler(response http.ResponseWriter, request *http.Request) {
+	// 解析请求参数
 	request.ParseForm()
-	checkpipelin := Commonpipeline.each(func(pipelin *pipelineNode) bool {
-		DogoLog.Debugf("Start call PipelineRun by name [%s]", pipelin.name)
 
-		return pipelin.h.PipelineRun(response, request)
+	context := &Context{}
+	context.parse(response, request)
+
+	checkpipelin := Commonpipeline.each(func(pipelin *pipelineNode) bool {
+		DogoLog.Debugf("Begin call PipelineRun by name [%s]", pipelin.name)
+		var beginTime, endTime int64
+		// 请求运行时间
+		if RunTimeConfig.IsDebug() {
+			beginTime = time.Now().UnixNano()
+		}
+		pipelineRunData := pipelin.h.PipelineRun(context)
+
+		// 请求运行时间
+		if RunTimeConfig.IsDebug() {
+			endTime = time.Now().UnixNano()
+			DogoLog.Debugf("Run end PipelineRun by name [%s], begintime:%d, endTime:%d, runtime:[%c[0,0,%dm %d us] %c[0m ", pipelin.name, beginTime, endTime, 0x1B, 31, (endTime-beginTime)/1000, 0x1B)
+		}
+
+		return pipelineRunData
 	})
+
 	if !checkpipelin {
 		return
 	}
@@ -24,13 +43,8 @@ func (d *dogo) handler(response http.ResponseWriter, request *http.Request) {
 
 // start servers
 func Start() {
-	// 添加日志记录
-	request_log := &PipelineLog{}
-	Commonpipeline.AddFirst(PIPELINE_LOG, request_log)
 
-	// 添加路由解析
-	context := &pipelineContext{}
-	Commonpipeline.AddLast(PIPELINE_CONTEXT, context)
+	regisger_ipeline()
 
 	if RunTimeConfig.UserSession {
 		// UserSession
@@ -39,6 +53,20 @@ func Start() {
 	}
 	DogoLog.Infof("Start Dogo in the port:%s", RunTimeConfig.Port)
 	DoGo.start()
+}
+
+func regisger_ipeline() {
+	// 添加日志记录
+	request_log := &PipelineLog{}
+	Commonpipeline.AddFirst(PIPELINE_LOG, request_log)
+
+	// 添加路由解析
+	prouter := &pipelineRouter{}
+	Commonpipeline.AddLast(PIPELINE_ROUTER, prouter)
+
+	// 将数据刷新到浏览器
+	finishRequest := &pipelineFinishRequest{}
+	Commonpipeline.AddLast(PIPELINE_FINISH_REQUEST, finishRequest)
 }
 
 func (t *dogo) start() {
