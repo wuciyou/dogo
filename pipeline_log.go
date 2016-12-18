@@ -1,13 +1,10 @@
 package dogo
 
-import (
-	"net/http"
-)
-
 type PipelineLog struct {
 }
 
-func (l *PipelineLog) PipelineRun(w http.ResponseWriter, r *http.Request) bool {
-	DogoLog.Infof("request:%+v \n ", r)
+func (l *PipelineLog) PipelineRun(ctx *Context) bool {
+
+	DogoLog.Infof("request:%+v \n ", ctx.Request)
 	return true
 }

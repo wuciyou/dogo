@@ -5,13 +5,19 @@ import (
 )
 
 type IndexController struct {
+	Name string
+	Age  int
 }
 
 func (index *IndexController) Index(c *dogo.Context) {
 
-	var body = " <center> Hello Word! <br> This is a Dogo page  <center> "
+	name := make(map[string]string)
+	name["name"] = "wuciyou"
+	c.SetHeader("Server", "wuciyou")
 
-	c.Response.Write([]byte(body))
+	c.Assign(name)
+	c.Display("View/index.html")
+
 }
 
 func init() {

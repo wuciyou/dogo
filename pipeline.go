@@ -1,11 +1,7 @@
 package dogo
 
-import (
-	"net/http"
-)
-
 type PipelineHandle interface {
-	PipelineRun(http.ResponseWriter, *http.Request) bool
+	PipelineRun(ctx *Context) bool
 }
 
 type pipelineNode struct {
