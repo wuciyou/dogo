@@ -27,6 +27,8 @@ func init() {
 	// session 名称
 	RunTimeConfig.SessionName = "DogoSessionID"
 	//
-	RunTimeConfig.LogDataChanSize = 10
+	RunTimeConfig.LogDataChanSize = 0
 
 }
+
+// I don’t understand the start means
