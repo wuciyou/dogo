@@ -8,7 +8,8 @@ type pipelineRouter struct {
 }
 
 func (prouter *pipelineRouter) PipelineRun(ctx *Context) bool {
-	routerContainer, _ := router.match(ctx.Request.URL.Path)
+	routerContainer, _ := router.match(ctx.Pattern)
+
 	if routerContainer == nil {
 		// http.NotFound(response, request)
 		return false
