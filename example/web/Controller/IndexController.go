@@ -31,10 +31,16 @@ func (index *IndexController) ReturnXml(c *dogo.Context) {
 	index.Age = 25
 	c.AjaxReturn(index, "XML")
 }
+func (index *IndexController) ReturnAuto(c *dogo.Context) {
+	index.Name = "Auto"
+	index.Age = 25
+	c.AjaxReturn(index)
+}
 
 func init() {
 	index := &IndexController{}
 	dogo.GetRouter("/", index.Index)
 	dogo.GetRouter("/returnJson", index.ReturnJson)
 	dogo.GetRouter("/returnXml", index.ReturnXml)
+	dogo.GetRouter("/returnAuto", index.ReturnAuto)
 }

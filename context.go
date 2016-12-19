@@ -110,12 +110,7 @@ func (c *Context) parse(response http.ResponseWriter, request *http.Request) {
 
 	c.Request.URL.Path = filepath.Clean(c.Request.URL.Path)
 	suffixPoint := strings.IndexAny(c.Request.URL.Path, ".")
-
 	if suffixPoint >= 0 {
-		c.Pattern = c.Request.URL.Path[:suffixPoint]
 		c.Suffix = c.Request.URL.Path[suffixPoint+1:]
-	} else {
-		c.Pattern = c.Request.URL.Path
 	}
-
 }

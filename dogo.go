@@ -71,6 +71,11 @@ func regisger_ipeline() {
 
 func (t *dogo) start() {
 
+	// 注册静态资源请求路径
+	http.HandleFunc(RunTimeConfig.staticRequstPath, serverFileController)
+
+	Router("/favicon.ico", faviconIcoController)
+
 	http.HandleFunc("/", t.handler)
 
 	http.ListenAndServe(":"+RunTimeConfig.Port, nil)

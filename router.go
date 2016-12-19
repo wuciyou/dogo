@@ -20,8 +20,17 @@ var router = &muxEntry{routerMap: make(map[string]*routerContainer)}
 func (r *muxEntry) match(path string) (*routerContainer, string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	// 匹配全路径
 	if rc, ok := r.routerMap[path]; ok {
 		return rc, path
+	}
+
+	suffixPoint := strings.IndexAny(path, ".")
+	if suffixPoint >= 0 {
+		path = path[:suffixPoint]
+		if rc, ok := r.routerMap[path]; ok {
+			return rc, path
+		}
 	}
 
 	return nil, path

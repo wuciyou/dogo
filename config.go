@@ -16,6 +16,17 @@ type dogoConfig struct {
 	// 支持 json, xml
 	// 如果为空，将根据 请求路径后缀自动匹配
 	ajaxReturnRormat string
+	// web服务器名称
+	// 默认为 DoGoServerv1
+	serverName string
+	// 静态资源请求路径
+	// 默认为 /imgages,/css
+	// 多个请求路径 使用,分割
+	// 最终的保存路径为
+	staticRequstPath string
+	// 静态资源存放路径   staticRootPath + staticRequstPath
+	// 默认为 项目根下面的 static目录
+	staticRootPath string
 }
 
 var RunTimeConfig dogoConfig
@@ -35,6 +46,10 @@ func init() {
 	RunTimeConfig.LogDataChanSize = 0
 	// 默认 ajax 返回的格式
 	RunTimeConfig.ajaxReturnRormat = "xml"
+	RunTimeConfig.serverName = "DoGoServerv1"
+
+	RunTimeConfig.staticRequstPath = "/static/"
+	RunTimeConfig.staticRootPath = "./"
 }
 
 // I don’t understand the start means
