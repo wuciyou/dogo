@@ -2,6 +2,8 @@ package Controller
 
 import (
 	"github.com/wuciyou/dogo"
+	"github.com/wuciyou/dogo/config"
+	"github.com/wuciyou/dogo/context"
 )
 
 type IndexController struct {
@@ -9,10 +11,11 @@ type IndexController struct {
 	Age  int
 }
 
-func (index *IndexController) Index(c *dogo.Context) {
+func (index *IndexController) Index(c *context.Context) {
 
 	name := make(map[string]string)
 	name["name"] = "wuciyou"
+
 	c.AddHeader("Server", "wuciyou")
 
 	c.Assign(name)
@@ -20,18 +23,18 @@ func (index *IndexController) Index(c *dogo.Context) {
 
 }
 
-func (index *IndexController) ReturnJson(c *dogo.Context) {
+func (index *IndexController) ReturnJson(c *context.Context) {
 	index.Name = "ReturnJson"
 	index.Age = 25
 	c.AjaxReturn(index)
 }
 
-func (index *IndexController) ReturnXml(c *dogo.Context) {
+func (index *IndexController) ReturnXml(c *context.Context) {
 	index.Name = "ReturnXml"
-	index.Age = 25
+	index.Age, _ = config.GetInt("LISTEN_PORT")
 	c.AjaxReturn(index, "XML")
 }
-func (index *IndexController) ReturnAuto(c *dogo.Context) {
+func (index *IndexController) ReturnAuto(c *context.Context) {
 	index.Name = "Auto"
 	index.Age = 25
 	c.AjaxReturn(index)

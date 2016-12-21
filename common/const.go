@@ -1,4 +1,4 @@
-package dogo
+package common
 
 import (
 	"fmt"
@@ -26,10 +26,10 @@ const (
 	PIPELINE_FINISH_REQUEST = "PIPELINE_FINISH_REQUEST"
 )
 
-type runLevel string
+type RunLevel string
 
 const (
-	RUN_INFO    runLevel = "INFO"
+	RUN_INFO    RunLevel = "INFO"
 	RUN_WARNING          = "WARNING"
 	RUN_DEBUG            = "DEBUG"
 	RUN_ERROR            = "ERROR"
@@ -40,6 +40,15 @@ var (
 	RUN_WARNING_FORMAT = fmt.Sprintf("%c[0,0,%dm [%-7s] %c[0m", 0x1B, 35, RUN_WARNING, 0x1B)
 	RUN_DEBUG_FORMAT   = fmt.Sprintf("%c[0,0,%dm [%-7s] %c[0m", 0x1B, 36, RUN_DEBUG, 0x1B)
 	RUN_ERROR_FORMAT   = fmt.Sprintf("%c[0,0,%dm [%-7s] %c[0m", 0x1B, 31, RUN_ERROR, 0x1B)
+)
+
+type HookTagName string
+
+const (
+	// app 运行之前
+	APP_BEGIN            HookTagName = "APP_BEGIN"
+	COMMONPIPELINE_BEGIN             = "COMMONPIPELINE_BEGIN"
+	COMMONPIPELINE_END               = "COMMONPIPELINE_END"
 )
 
 const (

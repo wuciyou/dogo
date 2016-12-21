@@ -1,10 +1,9 @@
-package dogo
+package config
 
 type dogoConfig struct {
 	// 运行端口
-	Port string
+	// port int
 	// 运行级别
-	RunLevel runLevel
 	// 使用session
 	UserSession bool
 	// session 名称
@@ -31,13 +30,21 @@ type dogoConfig struct {
 
 var RunTimeConfig dogoConfig
 
-func (c dogoConfig) IsDebug() bool {
-	return c.RunLevel == RUN_DEBUG
+func (c dogoConfig) AjaxReturnRormat() string {
+	return c.ajaxReturnRormat
+}
+func (c dogoConfig) StaticRequstPath() string {
+	return c.staticRequstPath
+}
+func (c dogoConfig) StaticRootPath() string {
+	return c.staticRootPath
+}
+
+func (c dogoConfig) ServerName() string {
+	return c.serverName
 }
 
 func init() {
-	RunTimeConfig.RunLevel = RUN_DEBUG
-	RunTimeConfig.Port = "8080"
 	// 默认开启Session
 	RunTimeConfig.UserSession = true
 	// session 名称

@@ -1,10 +1,15 @@
 package dogo
 
+import (
+	"github.com/wuciyou/dogo/context"
+	"github.com/wuciyou/dogo/dglog"
+)
+
 type PipelineLog struct {
 }
 
-func (l *PipelineLog) PipelineRun(ctx *Context) bool {
+func (l *PipelineLog) PipelineRun(ctx *context.Context) bool {
 
-	DogoLog.Infof("request:%+v \n ", ctx.Request)
+	dglog.Infof("request:%+v \n ", ctx.Request)
 	return true
 }

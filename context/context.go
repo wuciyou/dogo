@@ -1,10 +1,13 @@
-package dogo
+package context
 
 import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
+	"github.com/wuciyou/dogo/config"
+	"github.com/wuciyou/dogo/dglog"
 	"html/template"
+	"io"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -32,6 +35,10 @@ func (c *Context) AddHeader(name string, value string) {
 
 func (c *Context) Header() http.Header {
 	return c.response.rw.Header()
+}
+
+func (ctx *Context) GetWrite() io.Writer {
+	return ctx.response.writeBuf
 }
 
 func (c *Context) Write(data []byte) (int, error) {
@@ -62,7 +69,7 @@ func (c *Context) AjaxReturn(data interface{}, format ...string) {
 	} else if c.Suffix != "" {
 		ajaxReturnRormat = c.Suffix
 	} else {
-		ajaxReturnRormat = RunTimeConfig.ajaxReturnRormat
+		ajaxReturnRormat = config.RunTimeConfig.AjaxReturnRormat()
 	}
 
 	switch strings.ToUpper(ajaxReturnRormat) {
@@ -70,7 +77,7 @@ func (c *Context) AjaxReturn(data interface{}, format ...string) {
 	case "JSON":
 		dataJson, err := json.Marshal(data)
 		if err != nil {
-			DogoLog.Errorf("AjaxReturn json marshal fail:%v \n", err)
+			dglog.Errorf("AjaxReturn json marshal fail:%v \n", err)
 			return
 		}
 		c.AddHeader("Content-Type", "application/json; charset=utf-8")
@@ -78,7 +85,7 @@ func (c *Context) AjaxReturn(data interface{}, format ...string) {
 	case "XML":
 		dataXml, err := xml.Marshal(data)
 		if err != nil {
-			DogoLog.Errorf("AjaxReturn xml marshal fail:%v \n", err)
+			dglog.Errorf("AjaxReturn xml marshal fail:%v \n", err)
 			return
 		}
 		c.AddHeader("Content-Type", "text/xml; charset=utf-8")
@@ -89,7 +96,7 @@ func (c *Context) AjaxReturn(data interface{}, format ...string) {
 func (c *Context) Display(templateFile ...string) {
 	t, err := template.ParseFiles(templateFile...)
 	if err != nil {
-		DogoLog.Warningf("ParseFiles fail:%s", err)
+		dglog.Warningf("ParseFiles fail:%s", err)
 		return
 	}
 
@@ -103,6 +110,10 @@ func (c *Context) Assign(data interface{}) {
 	c.response.assignData = append(c.response.assignData, data)
 }
 
+func (c *Context) Parse(response http.ResponseWriter, request *http.Request) {
+	c.parse(response, request)
+}
+
 func (c *Context) parse(response http.ResponseWriter, request *http.Request) {
 
 	c.response = &dogoResponse{rw: response, writeBuf: bytes.NewBuffer(make([]byte, 0))}
@@ -113,4 +124,22 @@ func (c *Context) parse(response http.ResponseWriter, request *http.Request) {
 	if suffixPoint >= 0 {
 		c.Suffix = c.Request.URL.Path[suffixPoint+1:]
 	}
+}
+
+func (ctx *Context) NotFound() {
+	http.NotFound(ctx.response.rw, ctx.Request)
+}
+
+func (ctx *Context) Flush(isReturnData ...bool) []byte {
+
+	if len(isReturnData) > 0 && isReturnData[0] {
+
+		tempData := make([]byte, ctx.response.writeBuf.Len())
+		ctx.response.writeBuf.Read(tempData)
+		ctx.response.rw.Write(tempData)
+		return tempData
+	} else {
+		ctx.response.writeBuf.WriteTo(ctx.response.rw)
+	}
+	return nil
 }

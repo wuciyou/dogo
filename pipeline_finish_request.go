@@ -1,15 +1,17 @@
 package dogo
 
+import (
+	"github.com/wuciyou/dogo/config"
+	"github.com/wuciyou/dogo/context"
+	"github.com/wuciyou/dogo/dglog"
+)
+
 type pipelineFinishRequest struct {
 }
 
-func (f *pipelineFinishRequest) PipelineRun(ctx *Context) bool {
-	ctx.AddHeader("Server", RunTimeConfig.serverName)
-
-	data := make([]byte, ctx.response.writeBuf.Len())
-	ctx.response.writeBuf.Read(data)
-	ctx.response.rw.Write(data)
-
-	DogoLog.Infof("response data:%s, byte:%v ", string(data), data)
+func (f *pipelineFinishRequest) PipelineRun(ctx *context.Context) bool {
+	ctx.AddHeader("Server", config.RunTimeConfig.ServerName())
+	data := ctx.Flush(true)
+	dglog.Infof("response data:%s, byte:%v ", string(data), data)
 	return true
 }
