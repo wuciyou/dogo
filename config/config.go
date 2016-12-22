@@ -1,62 +1,135 @@
 package config
 
-type dogoConfig struct {
-	// 运行端口
-	// port int
-	// 运行级别
-	// 使用session
-	UserSession bool
-	// session 名称
-	SessionName string
-	// log 日志缓存大小(谨慎操作。默认值为0，如果 > 0 ，日志记录将是无序的，不能保证写入顺序)
-	// 这里的缓存不是日志记录数据大小
-	LogDataChanSize int
-	// 默认 ajax 返回的格式
-	// 支持 json, xml
-	// 如果为空，将根据 请求路径后缀自动匹配
-	ajaxReturnRormat string
-	// web服务器名称
-	// 默认为 DoGoServerv1
-	serverName string
-	// 静态资源请求路径
-	// 默认为 /imgages,/css
-	// 多个请求路径 使用,分割
-	// 最终的保存路径为
-	staticRequstPath string
-	// 静态资源存放路径   staticRootPath + staticRequstPath
-	// 默认为 项目根下面的 static目录
-	staticRootPath string
+import (
+	"bufio"
+	"errors"
+	"fmt"
+	"github.com/wuciyou/dogo/dglog"
+	"io"
+	"os"
+	"path/filepath"
+	"runtime"
+	"strconv"
+	"strings"
+	"sync"
+)
+
+type runConfig struct {
+	c map[string]string
+	m *sync.Mutex
 }
 
-var RunTimeConfig dogoConfig
+var runTimeConfig = &runConfig{c: make(map[string]string), m: &sync.Mutex{}}
 
-func (c dogoConfig) AjaxReturnRormat() string {
-	return c.ajaxReturnRormat
-}
-func (c dogoConfig) StaticRequstPath() string {
-	return c.staticRequstPath
-}
-func (c dogoConfig) StaticRootPath() string {
-	return c.staticRootPath
+func parse(rd io.Reader) {
+	fcBuf := bufio.NewReader(rd)
+
+	var configPrefix string
+
+	for {
+		linData, _, err := fcBuf.ReadLine()
+		if err != nil {
+
+			if err == io.EOF {
+				break
+			}
+
+			dglog.Errorf("Can't read the config  %v", err)
+			break
+		}
+
+		linstr := strings.TrimSpace(string(linData))
+
+		if linstr == "" || strings.HasPrefix(linstr, "#") {
+			continue
+		}
+
+		bracketsBeginIndex := strings.IndexAny(linstr, "[")
+		bracketsEndIndex := strings.IndexAny(linstr, "]")
+		if bracketsBeginIndex >= 0 && bracketsEndIndex > 1 {
+			configPrefix = strings.TrimSpace(linstr[bracketsBeginIndex+1:bracketsEndIndex]) + "."
+			continue
+		}
+		equalIndex := strings.IndexAny(linstr, "=")
+		if equalIndex > 0 && len(linstr) > equalIndex {
+			configKey := strings.TrimSpace(linstr[:equalIndex])
+			configValue := strings.TrimSpace(linstr[equalIndex+1:])
+			Add(configPrefix+configKey, configValue)
+			continue
+		}
+	}
 }
 
-func (c dogoConfig) ServerName() string {
-	return c.serverName
+func Parse(confiPath string) {
+	fc, err := os.Open(confiPath)
+	if err != nil {
+		dglog.Errorf("Can't open the file '%s' \n %s", confiPath, err)
+		return
+	}
+
+	parse(fc)
+}
+
+func Add(name string, value string) error {
+	runTimeConfig.m.Lock()
+	defer runTimeConfig.m.Unlock()
+	name = strings.TrimSpace(name)
+	if len(name) <= 0 || len(value) <= 0 {
+		return errors.New(fmt.Sprintf("Can't add '%s' to config map", name))
+	}
+	runTimeConfig.c[name] = value
+	return nil
+}
+
+func GetAll() map[string]string {
+	return runTimeConfig.c
+}
+
+func EqualFold(name string, chars string) (bool, error) {
+	values, err := GetString(name)
+	if err != nil {
+		return false, err
+	}
+	return strings.EqualFold(strings.ToUpper(values), strings.ToUpper(chars)), nil
+}
+
+func GetString(name string) (string, error) {
+	runTimeConfig.m.Lock()
+	defer runTimeConfig.m.Unlock()
+	if value, ok := runTimeConfig.c[name]; ok {
+		return value, nil
+	}
+	return "", errors.New(fmt.Sprintf("No found name:%s in the config container", name))
+}
+
+func GetInt(name string) (int, error) {
+	values, err := GetString(name)
+	if err != nil {
+		return 0, err
+	}
+
+	return strconv.Atoi(values)
+}
+func GetBool(name string) (bool, error) {
+	values, err := GetString(name)
+	if err != nil {
+		return false, err
+	}
+	switch values {
+	case "true", "TRUE":
+		return true, nil
+	case "false", "FALSE":
+		return false, nil
+	default:
+		return false, errors.New(fmt.Sprintf("Unknown values:%s, Only support(true,TRUE or false, FALSE)", values))
+	}
 }
 
 func init() {
-	// 默认开启Session
-	RunTimeConfig.UserSession = true
-	// session 名称
-	RunTimeConfig.SessionName = "DogoSessionID"
-	// log 日志缓存队列大小
-	RunTimeConfig.LogDataChanSize = 0
-	// 默认 ajax 返回的格式
-	RunTimeConfig.ajaxReturnRormat = "xml"
-	RunTimeConfig.serverName = "DoGoServerv1"
-
-	RunTimeConfig.staticRequstPath = "/static/"
-	RunTimeConfig.staticRootPath = "./"
+	_, file, _, ok := runtime.Caller(1)
+	if ok {
+		configDir := filepath.Dir(file)
+		Parse(configDir + "/default.ini")
+	}
+	// dglog.Debugf("pc:%v, file:%s, line:%d, ok:%v \n ", pc, file, line, ok)
 }
-
-// I don’t understand the start means

@@ -1,4 +1,4 @@
-package dogo
+package pipeline
 
 import (
 	"testing"

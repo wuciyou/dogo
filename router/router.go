@@ -1,12 +1,14 @@
-package dogo
+package router
 
 import (
+	"errors"
+	"fmt"
 	"github.com/wuciyou/dogo/common"
 	"github.com/wuciyou/dogo/context"
 	"github.com/wuciyou/dogo/dglog"
+	"net/http"
 	"strings"
 	"sync"
-	//
 )
 
 type routerContainer struct {
@@ -19,7 +21,7 @@ type muxEntry struct {
 	mu        sync.RWMutex
 }
 
-var router = &muxEntry{routerMap: make(map[string]*routerContainer)}
+var routerEnttry = &muxEntry{routerMap: make(map[string]*routerContainer)}
 
 func (r *muxEntry) match(path string) (*routerContainer, string) {
 	r.mu.Lock()
@@ -75,21 +77,38 @@ func (r *muxEntry) DeleteRouter(pattern string, ch context.ContextHandle) {
 }
 
 func Router(pattern string, ch context.ContextHandle) {
-	router.set(pattern, "", ch)
+	routerEnttry.set(pattern, "", ch)
 }
 
 func GetRouter(pattern string, ch context.ContextHandle) {
-	router.GetRouter(pattern, ch)
+	routerEnttry.GetRouter(pattern, ch)
 }
 
 func PostRouter(pattern string, ch context.ContextHandle) {
-	router.PostRouter(pattern, ch)
+	routerEnttry.PostRouter(pattern, ch)
 }
 
 func PutRouter(pattern string, ch context.ContextHandle) {
-	router.PutRouter(pattern, ch)
+	routerEnttry.PutRouter(pattern, ch)
 }
 
 func DeleteRouter(pattern string, ch context.ContextHandle) {
-	router.DeleteRouter(pattern, ch)
+	routerEnttry.DeleteRouter(pattern, ch)
+}
+
+func Match(request *http.Request) (context.ContextHandle, string, error) {
+
+	routerContainer, pattern := routerEnttry.match(request.URL.Path)
+	if routerContainer == nil {
+		return nil, pattern, errors.New("404 page not found")
+	}
+
+	if routerContainer.method != "" && string(routerContainer.method) != request.Method {
+		// http.NotFound(response, request)
+
+		return nil, pattern, errors.New(fmt.Sprintf("Request method[%s] must be %s,url:%s", request.Method, routerContainer.method, request.URL.Path))
+	}
+
+	return routerContainer.ch, pattern, nil
+
 }

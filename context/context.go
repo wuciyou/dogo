@@ -69,7 +69,11 @@ func (c *Context) AjaxReturn(data interface{}, format ...string) {
 	} else if c.Suffix != "" {
 		ajaxReturnRormat = c.Suffix
 	} else {
-		ajaxReturnRormat = config.RunTimeConfig.AjaxReturnRormat()
+		_ajaxReturnRormat, err := config.GetString("AJAX_RETURN_FORMAT")
+		if err != nil {
+			dglog.Error(err)
+		}
+		ajaxReturnRormat = _ajaxReturnRormat
 	}
 
 	switch strings.ToUpper(ajaxReturnRormat) {

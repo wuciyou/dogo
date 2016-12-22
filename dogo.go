@@ -8,6 +8,8 @@ import (
 	"github.com/wuciyou/dogo/dglog"
 	"github.com/wuciyou/dogo/hooks"
 	"github.com/wuciyou/dogo/pipeline"
+	pipelineHandle "github.com/wuciyou/dogo/pipeline/handle"
+	"github.com/wuciyou/dogo/router"
 	"net/http"
 	"time"
 )
@@ -65,23 +67,26 @@ func Start() {
 }
 
 func regisger_pipeline() {
-
-	if config.RunTimeConfig.UserSession {
+	isAutoStartSession, err := config.GetBool("SESSION.IS_AUTO_START")
+	if err != nil {
+		dglog.Error(err)
+	}
+	if isAutoStartSession {
 		// UserSession
-		session := &pipelineSession{}
+		session := &pipelineHandle.Session{}
 		pipeline.AddFirst(common.PIPELINE_SESSION, session)
 	}
 
 	// 添加日志记录
-	request_log := &PipelineLog{}
+	request_log := &pipelineHandle.Log{}
 	pipeline.AddFirst(common.PIPELINE_LOG, request_log)
 
 	// 添加路由解析
-	prouter := &pipelineRouter{}
+	prouter := &pipelineHandle.Router{}
 	pipeline.AddLast(common.PIPELINE_ROUTER, prouter)
 
 	// 将数据刷新到浏览器
-	finishRequest := &pipelineFinishRequest{}
+	finishRequest := &pipelineHandle.FinishRequest{}
 	pipeline.AddLast(common.PIPELINE_FINISH_REQUEST, finishRequest)
 
 	hooks.Add(common.COMMONPIPELINE_END, func(param ...interface{}) {
@@ -92,9 +97,13 @@ func regisger_pipeline() {
 func (t *dogo) start() {
 
 	// 注册静态资源请求路径
-	http.HandleFunc(config.RunTimeConfig.StaticRequstPath(), serverFileController)
+	static_path, err := config.GetString("STATIC_REQUST_PATH")
+	if err != nil {
+		dglog.Error(err)
+	}
+	http.HandleFunc(static_path, serverFileController)
 
-	Router("/favicon.ico", faviconIcoController)
+	router.Router("/favicon.ico", faviconIcoController)
 
 	http.HandleFunc("/", t.handler)
 

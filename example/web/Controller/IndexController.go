@@ -1,9 +1,9 @@
 package Controller
 
 import (
-	"github.com/wuciyou/dogo"
 	"github.com/wuciyou/dogo/config"
 	"github.com/wuciyou/dogo/context"
+	"github.com/wuciyou/dogo/router"
 )
 
 type IndexController struct {
@@ -42,8 +42,8 @@ func (index *IndexController) ReturnAuto(c *context.Context) {
 
 func init() {
 	index := &IndexController{}
-	dogo.GetRouter("/", index.Index)
-	dogo.GetRouter("/returnJson", index.ReturnJson)
-	dogo.GetRouter("/returnXml", index.ReturnXml)
-	dogo.GetRouter("/returnAuto", index.ReturnAuto)
+	router.GetRouter("/", index.Index)
+	router.GetRouter("/returnJson", index.ReturnJson)
+	router.GetRouter("/returnXml", index.ReturnXml)
+	router.GetRouter("/returnAuto", index.ReturnAuto)
 }

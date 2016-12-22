@@ -15,7 +15,12 @@ import (
 )
 
 func serverFileController(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, config.RunTimeConfig.StaticRootPath()+r.URL.Path)
+
+	statid_dir, err := config.GetString("STATIC_ROOT_PATH")
+	if err != nil {
+		dglog.Error(err)
+	}
+	http.ServeFile(w, r, statid_dir+r.URL.Path)
 }
 
 func faviconIcoController(ctx *context.Context) {
