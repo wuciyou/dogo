@@ -90,7 +90,7 @@ func regisger_pipeline() {
 	pipeline.AddLast(common.PIPELINE_FINISH_REQUEST, finishRequest)
 
 	hooks.Add(common.COMMONPIPELINE_END, func(param ...interface{}) {
-		dglog.Debugf("Run COMMONPIPELINE_END end PipelineRun by name:%v \n ", param)
+		dglog.Debugf("Run hooks COMMONPIPELINE_END :%v \n ", param)
 	})
 }
 
@@ -111,9 +111,11 @@ func (t *dogo) start() {
 	if err != nil {
 		dglog.Error(err)
 	}
-	dglog.Infof("Dogo Listen in the port:%d", listenPort)
+	listenIp, _ := config.GetString("LISTEN_IP")
 
-	http.ListenAndServe(fmt.Sprintf(":%d", listenPort), nil)
+	dglog.Infof("Dogo Listen in the port[%s:%d]", listenIp, listenPort)
+
+	http.ListenAndServe(fmt.Sprintf("%s:%d", listenIp, listenPort), nil)
 }
 
 func init() {

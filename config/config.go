@@ -7,8 +7,6 @@ import (
 	"github.com/wuciyou/dogo/dglog"
 	"io"
 	"os"
-	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -126,10 +124,13 @@ func GetBool(name string) (bool, error) {
 }
 
 func init() {
-	_, file, _, ok := runtime.Caller(1)
-	if ok {
-		configDir := filepath.Dir(file)
-		Parse(configDir + "/default.ini")
+	parse(strings.NewReader(default_conf))
+
+	f, err := os.Open("./config/default.ini")
+	if os.IsNotExist(err) {
+		dglog.Warning("No found default.ini in your web root")
+	} else {
+		parse(f)
 	}
 	// dglog.Debugf("pc:%v, file:%s, line:%d, ok:%v \n ", pc, file, line, ok)
 }

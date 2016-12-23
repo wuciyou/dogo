@@ -42,7 +42,7 @@ func (h *hook) each(name common.HookTagName, f func(hander HookHander)) {
 
 func (h *hook) Listen(name common.HookTagName, param ...interface{}) {
 	h.each(name, func(hander HookHander) {
-		hander(param)
+		hander(param...)
 	})
 }
 
@@ -51,5 +51,5 @@ func Add(name common.HookTagName, hander func(param ...interface{})) {
 }
 
 func Listen(name common.HookTagName, param ...interface{}) {
-	Hook.Listen(name, param)
+	Hook.Listen(name, param...)
 }

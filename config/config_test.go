@@ -11,7 +11,7 @@ func TestParse(t *testing.T) {
 		"SERVER_NAME":        "DoGoServerv1",
 		"LOG.DATA_CHAN_SIZE": "0",
 	}
-	Parse("default.ini")
+	parse(default_conf)
 	parseConfMap := GetAll()
 	for k, v := range confMap {
 		if cv, ok := parseConfMap[k]; ok {
