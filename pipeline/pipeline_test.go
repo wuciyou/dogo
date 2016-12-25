@@ -2,28 +2,43 @@ package pipeline
 
 import (
 	"testing"
+
+	"github.com/wuciyou/dogo/context"
+
+	"github.com/wuciyou/dogo/common"
+	"github.com/wuciyou/dogo/dglog"
 )
 
 var pipelineArr = []string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "n", "m", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"}
 
-func TestAdd(t *testing.T) {
-	log := &LogPipeline{}
-	Commonpipeline.AddLast("d", log)
-	Commonpipeline.AddLast("e", log)
-	Commonpipeline.AddLast("f", log)
-	Commonpipeline.AddLast("g", log)
-	Commonpipeline.AddFirst("c", log)
-	Commonpipeline.AddLast("h", log)
-	Commonpipeline.AddFirst("b", log)
-	Commonpipeline.AddFirst("a", log)
-	Commonpipeline.AddLast("k", log)
-	Commonpipeline.AddBefore("k", "i", log)
-	Commonpipeline.AddAfter("i", "j", log)
+type logTest struct {
+}
 
+func (l *logTest) PipelineRun(ctx *context.Context) bool {
+
+	dglog.Infof("request:%+v \n ", ctx.Request)
+	return true
+}
+
+func TestAdd(t *testing.T) {
+	log := &logTest{}
+	AddLast("d", log)
+	AddLast("e", log)
+	AddLast("f", log)
+	AddLast("g", log)
+	AddFirst("c", log)
+	AddLast("h", log)
+	AddFirst("b", log)
+	AddFirst("a", log)
+	AddLast("k", log)
+	AddBefore("k", "l", log)
+	AddAfter("l", "j", log)
+	Replace("l", "i", log)
 	var count int
-	Commonpipeline.each(func(p *pipelineNode) bool {
-		if p.name != pipelineArr[count] {
-			t.Errorf("Commonpipeline index:%d , name[%s] not equal pipelineArr[%s] \n", count, p.name, pipelineArr[count])
+	Each(func(name common.PipelineKey, handle PipelineHandle) bool {
+
+		if string(name) != pipelineArr[count] {
+			t.Errorf("Commonpipeline index:%d , name[%s] not equal pipelineArr[%s] \n", count, name, pipelineArr[count])
 		}
 		count++
 		return true

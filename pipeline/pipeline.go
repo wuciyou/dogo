@@ -61,6 +61,15 @@ func (p *pipeline) addBefore(beforeName common.PipelineKey, name common.Pipeline
 		dglog.Errorf("Can't found name[%s] on the pipeline\n ", beforeName)
 	}
 }
+func (p *pipeline) replace(oldeName common.PipelineKey, name common.PipelineKey, handle PipelineHandle) {
+	if tempPipelineHandle, i := p.getByName(oldeName); tempPipelineHandle != nil {
+		node := &pipelineNode{name: name, h: handle}
+		p.pipelineNode[i] = node
+		dglog.Debugf("Replace pipelineHandle  name[%s] to old[%s]", name, oldeName)
+	} else {
+		dglog.Errorf("Can't found name[%s] on the pipeline\n ", oldeName)
+	}
+}
 
 func (p *pipeline) checkName(name common.PipelineKey) {
 	if node, _ := p.getByName(name); node != nil {
@@ -107,6 +116,9 @@ func AddAfter(afterName common.PipelineKey, name common.PipelineKey, handle Pipe
 }
 func AddBefore(beforeName common.PipelineKey, name common.PipelineKey, handle PipelineHandle) {
 	commonpipeline.addBefore(beforeName, name, handle)
+}
+func Replace(oldName common.PipelineKey, name common.PipelineKey, handle PipelineHandle) {
+	commonpipeline.replace(oldName, name, handle)
 }
 func Each(f func(name common.PipelineKey, handle PipelineHandle) bool) bool {
 	return commonpipeline.each(f)

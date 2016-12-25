@@ -1,31 +1,39 @@
 package handle
 
-import (
-	"github.com/wuciyou/dogo/context"
-)
+// import (
+// 	"github.com/wuciyou/dogo/config"
+// 	"github.com/wuciyou/dogo/context"
+// 	"github.com/wuciyou/dogo/dglog"
+// 	"github.com/wuciyou/dogo/session"
+// 	"net/http"
+// )
 
-type Session struct {
-}
+// type Session struct {
+// }
 
-func (s *Session) PipelineRun(ctx *context.Context) bool {
+// func (s *Session) PipelineRun(ctx *context.Context) bool {
+// 	sessionName, err := config.GetString("SESSION.NAME")
+// 	if err != nil {
+// 		dglog.Error(err)
+// 	}
 
-	// cookie, err := request.Cookie(RunTimeConfig.SessionName)
-	// if err != nil {
-	// 	if err == http.ErrNoCookie {
-	// 		DogoLog.Debug("SessionName not present in the cookie ")
-	// 		SessionNameid := "wuciyourqyqqqq"
-	// 		DogoLog.Debugf("Reset SessionName[%s] to cookie ", SessionNameid)
+// 	cookie, err := request.Cookie(sessionName)
+// 	if err != nil {
+// 		if err == http.ErrNoCookie {
+// 			sid, err := session.GenerateSid()
+// 			if err != nil {
+// 				dglog.Error(err)
+// 			}
 
-	// 		newCookie := &http.Cookie{}
-	// 		newCookie.Name = RunTimeConfig.SessionName
-	// 		newCookie.Value = SessionNameid
+// 			DogoLog.Debugf("Reset SessionName[%s] to cookie ", sid)
 
-	// 		http.SetCookie(response, newCookie)
+// 			newCookie := &http.Cookie{}
+// 			newCookie.Name = sessionName
+// 			newCookie.Value = sid
 
-	// 	}
-	// }
+// 			http.SetCookie(response, newCookie)
 
-	// DogoLog.Debugf("Read SessionName success cookie:%+v", cookie)
-
-	return true
-}
+// 		}
+// 	}
+// 	return true
+// }

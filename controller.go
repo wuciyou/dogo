@@ -6,6 +6,7 @@ import (
 	"github.com/wuciyou/dogo/config"
 	"github.com/wuciyou/dogo/context"
 	"github.com/wuciyou/dogo/dglog"
+	"github.com/wuciyou/dogo/hooks"
 	"image"
 	"image/png"
 	"io"
@@ -15,7 +16,7 @@ import (
 )
 
 func serverFileController(w http.ResponseWriter, r *http.Request) {
-
+	hooks.Listen(common.STATIC_REQUEST, w, r)
 	statid_dir, err := config.GetString("STATIC_ROOT_PATH")
 	if err != nil {
 		dglog.Error(err)

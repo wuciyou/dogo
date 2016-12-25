@@ -6,6 +6,7 @@ import (
 	"encoding/xml"
 	"github.com/wuciyou/dogo/config"
 	"github.com/wuciyou/dogo/dglog"
+	"github.com/wuciyou/dogo/session"
 	"html/template"
 	"io"
 	"net/http"
@@ -23,10 +24,11 @@ type dogoResponse struct {
 }
 
 type Context struct {
-	response *dogoResponse
-	Request  *http.Request
-	Pattern  string
-	Suffix   string
+	response         *dogoResponse
+	Request          *http.Request
+	sessionContainer *session.SessionContainer
+	Pattern          string
+	Suffix           string
 }
 
 func (c *Context) AddHeader(name string, value string) {

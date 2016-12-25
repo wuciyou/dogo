@@ -22,6 +22,7 @@ type dogo struct {
 var DoGo *dogo
 
 func (d *dogo) handler(response http.ResponseWriter, request *http.Request) {
+	hooks.Listen(common.NEW_REQUEST, request)
 	// 解析请求参数
 	request.ParseForm()
 
@@ -35,9 +36,8 @@ func (d *dogo) handler(response http.ResponseWriter, request *http.Request) {
 		d.isDebug = isDebug
 	}
 
-	checkpipelin := pipeline.Each(func(name common.PipelineKey, handle pipeline.PipelineHandle) bool {
+	pipeline.Each(func(name common.PipelineKey, handle pipeline.PipelineHandle) bool {
 		dglog.Debugf("Begin call PipelineRun by name [%s]", name)
-		hooks.Listen(common.COMMONPIPELINE_BEGIN, name)
 		var beginTime, endTime int64
 		// 请求运行时间
 		if isDebug {
@@ -50,32 +50,19 @@ func (d *dogo) handler(response http.ResponseWriter, request *http.Request) {
 			endTime = time.Now().UnixNano()
 			dglog.Debugf("Run end PipelineRun by name [%s], begintime:%d, endTime:%d, runtime:[%c[0,0,%dm %d us] %c[0m ", name, beginTime, endTime, 0x1B, 31, (endTime-beginTime)/1000, 0x1B)
 		}
-		hooks.Listen(common.COMMONPIPELINE_END, name)
 		return pipelineRunData
 	})
-
-	if !checkpipelin {
-		return
-	}
 }
 
 // start servers
 func Start() {
-	regisger_pipeline()
 
+	// 注册管道
+	regisger_pipeline()
 	DoGo.start()
 }
 
 func regisger_pipeline() {
-	isAutoStartSession, err := config.GetBool("SESSION.IS_AUTO_START")
-	if err != nil {
-		dglog.Error(err)
-	}
-	if isAutoStartSession {
-		// UserSession
-		session := &pipelineHandle.Session{}
-		pipeline.AddFirst(common.PIPELINE_SESSION, session)
-	}
 
 	// 添加日志记录
 	request_log := &pipelineHandle.Log{}
@@ -89,18 +76,16 @@ func regisger_pipeline() {
 	finishRequest := &pipelineHandle.FinishRequest{}
 	pipeline.AddLast(common.PIPELINE_FINISH_REQUEST, finishRequest)
 
-	hooks.Add(common.COMMONPIPELINE_END, func(param ...interface{}) {
-		dglog.Debugf("Run hooks COMMONPIPELINE_END :%v \n ", param)
-	})
 }
 
 func (t *dogo) start() {
-
+	hooks.Listen(common.APP_START_BEGIN)
 	// 注册静态资源请求路径
 	static_path, err := config.GetString("STATIC_REQUST_PATH")
 	if err != nil {
 		dglog.Error(err)
 	}
+	// 添加静态资源请求路径
 	http.HandleFunc(static_path, serverFileController)
 
 	router.Router("/favicon.ico", faviconIcoController)

@@ -25,15 +25,13 @@ STATIC_REQUST_PATH=/static/
 
 # 表态资源保存目录
 # 注意：
-# 实在在项目中的存放目录： STATIC_ROOT_PATH + STATIC_REQUST_PATH
+# 实际在项目中的存放目录： STATIC_ROOT_PATH + STATIC_REQUST_PATH
 STATIC_ROOT_PATH=./
 
 ##########################
 [SESSION]
 
-#是否自动开启session
-IS_AUTO_START=true
-
+NAME=DOGO_SESSION_ID
 #session名称
 NAME=DogoSessionID
 

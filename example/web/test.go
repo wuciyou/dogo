@@ -13,7 +13,7 @@ var w *sync.WaitGroup
 
 func main() {
 	// f0()
-	f3()
+	f0()
 }
 
 func f0() {
@@ -37,7 +37,7 @@ func f1(index int) {
 func f2(index int) {
 	var beginTime, endTime int64
 	beginTime = time.Now().UnixNano()
-	http.Get("http://127.0.0.1:8080")
+	http.Get("http://127.0.0.1:8089")
 	endTime = time.Now().UnixNano()
 	log.Printf("当前：%d, 请求时间：%d us \n", index, (endTime-beginTime)/1000)
 

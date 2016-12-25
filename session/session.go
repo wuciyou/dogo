@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/wuciyou/dogo/dglog"
+	"github.com/wuciyou/dogo/session/handle"
 	"os"
 	"sync"
 	"time"
@@ -24,9 +25,8 @@ type SessionHandle interface {
 }
 
 type SessionContainer struct {
-	m     *sync.Mutex
-	sid   string
-	store map[string]interface{}
+	m   *sync.Mutex
+	sid string
 	// 过期时间
 	expire int64
 }
@@ -37,7 +37,7 @@ type sessioneManager struct {
 	container map[string]*SessionContainer
 }
 
-var manager = &sessioneManager{m: &sync.Mutex{}, container: make(map[string]*SessionContainer)}
+var manager *sessioneManager
 
 func (container *SessionContainer) Add(name string, data interface{}) {
 	manager.add(container.sid, name, data)
@@ -145,7 +145,6 @@ func GetSession(sid string) *SessionContainer {
 		sessionContainer := &SessionContainer{
 			sid:    sid,
 			m:      &sync.Mutex{},
-			store:  make(map[string]interface{}),
 			expire: time.Now().Unix() + int64(time.Second*3600),
 		}
 		manager.container[sid] = sessionContainer
@@ -172,4 +171,15 @@ func GenerateSid() (string, error) {
 		sid = fmt.Sprintf("%s-%s-%s-%s-%s", sid[:8], sid[8:12], sid[12:16], sid[16:20], sid[20:])
 	}
 	return sid, nil
+}
+
+func init() {
+	manager = &sessioneManager{m: &sync.Mutex{}, container: make(map[string]*SessionContainer)}
+	// 设置FileStoreEntity为默认的session存储驱动
+	fs := handle.FileStoreEntity
+	err := fs.Open()
+	if err != nil {
+		dglog.Errorf("Could not call FileStoreEntity open menthod:%v ", err)
+	}
+	manager.setHandle(fs)
 }

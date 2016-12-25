@@ -45,10 +45,18 @@ var (
 type HookTagName string
 
 const (
-	// app 运行之前
-	APP_BEGIN            HookTagName = "APP_BEGIN"
-	COMMONPIPELINE_BEGIN             = "COMMONPIPELINE_BEGIN"
-	COMMONPIPELINE_END               = "COMMONPIPELINE_END"
+	// app开始运行
+	// 传入参数：无
+	APP_START_BEGIN HookTagName = "APP_START_BEGIN"
+	// 新的请求进来
+	// 传入参数：*http.Request
+	NEW_REQUEST = "NEW_REQUEST"
+	// 开始查找路由
+	// 传入参数：*context.Context
+	ROUTER_PARSE_BEGIN = "ROUTER_PARSE_BEGIN"
+
+	// 静态资源请求
+	STATIC_REQUEST = "STATIC_REQUEST"
 )
 
 const (
