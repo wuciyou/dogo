@@ -28,7 +28,9 @@ func (fs *fileStore) Open() error {
 	rd.Close()
 	if err != nil {
 		if os.IsNotExist(err) {
-			return os.MkdirAll(rootDir, os.ModePerm)
+			if err := os.MkdirAll(rootDir, os.ModePerm); err != nil {
+				return err
+			}
 		} else {
 			return err
 		}

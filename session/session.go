@@ -1,7 +1,9 @@
 package session
 
 import (
+	"bytes"
 	"crypto/rand"
+	"encoding/gob"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -50,39 +52,42 @@ func (container *SessionContainer) Delete(name string) {
 }
 
 func (manager *sessioneManager) add(sid string, name string, data interface{}) {
+	var dataBf bytes.Buffer
+	enc := gob.NewEncoder(&dataBf)
+
 	h := manager.getHandle()
-	dataMap := make(map[string]interface{})
+	dataMap := make(map[string][]byte)
 	oldData := h.Read(sid)
 	if oldData != nil {
 		json.Unmarshal(oldData, &dataMap)
 		dglog.Debugf("session [%s] parse:%s", sid, dataMap)
 	}
-	dataMap[name] = data
+
+	if err := enc.Encode(data); err != nil {
+		dglog.Errorf("Session encode fail. sid:%s, name:%s, data:%v", sid, name, data)
+	}
+	dataMap[name] = dataBf.Bytes()
+	dglog.Debugf("Session encoder:sid:%s, name:%s, data:%v \n", sid, name, dataMap[name])
 	newData, err := json.Marshal(dataMap)
+
 	if err != nil {
 		dglog.Errorf("Can't marshal session[sid:%s, name:%s, data:%v] to session ", sid, name, data)
 		return
 	}
-	// TODO
 	h.Write(sid, newData)
 }
 
 func (manager *sessioneManager) get(sid string, name string, data interface{}) {
 	h := manager.getHandle()
-	dataMap := make(map[string]interface{})
+	dataMap := make(map[string][]byte)
 	oldData := h.Read(sid)
 	if oldData != nil {
 		json.Unmarshal(oldData, &dataMap)
 		if value, ok := dataMap[name]; ok {
-			switch dataType := data.(type) {
-			case string:
-				dglog.Infof("%s", dataType)
-			case *string:
-				tempData := value.(string)
-				*dataType = tempData
-			default:
-				dglog.Infof("default:%s", dataType)
-			}
+			dataBf := bytes.NewBuffer(value)
+			dglog.Debugf("Session decoder:sid:%s, name:%s, data:%v \n", sid, name, value)
+			dec := gob.NewDecoder(dataBf)
+			dec.Decode(data)
 		}
 	}
 }
