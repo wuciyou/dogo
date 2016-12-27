@@ -10,6 +10,7 @@ import (
 	"github.com/wuciyou/dogo/pipeline"
 	pipelineHandle "github.com/wuciyou/dogo/pipeline/handle"
 	"github.com/wuciyou/dogo/router"
+	"github.com/wuciyou/dogo/session"
 	"net/http"
 	"time"
 )
@@ -79,6 +80,7 @@ func regisger_pipeline() {
 }
 
 func (t *dogo) start() {
+	session.InitSession()
 	hooks.Listen(common.APP_START_BEGIN)
 	// 注册静态资源请求路径
 	static_path, err := config.GetString("STATIC_REQUST_PATH")

@@ -102,12 +102,16 @@ func (c *Context) AjaxReturn(data interface{}, format ...string) {
 func (c *Context) Display(templateFile ...string) {
 	t, err := template.ParseFiles(templateFile...)
 	if err != nil {
-		dglog.Warningf("ParseFiles fail:%s", err)
+		dglog.Errorf("ParseFiles fail:%s", err)
 		return
 	}
 
-	for _, v := range c.response.assignData {
-		t.Execute(c.response.writeBuf, v)
+	if len(c.response.assignData) > 0 {
+		for _, v := range c.response.assignData {
+			t.Execute(c.response.writeBuf, v)
+		}
+	} else {
+		t.Execute(c.response.writeBuf, nil)
 	}
 
 }

@@ -8,9 +8,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/wuciyou/dogo/common"
 	"github.com/wuciyou/dogo/dglog"
 	"github.com/wuciyou/dogo/session/handle"
 	"os"
+	"strings"
 	"sync"
 	"time"
 )
@@ -28,7 +30,7 @@ type SessionContainer struct {
 	m   *sync.Mutex
 	sid string
 	// 过期时间
-	expire int64
+	expire uint64
 }
 
 type sessioneManager struct {
@@ -39,19 +41,33 @@ type sessioneManager struct {
 
 var manager *sessioneManager
 
-func (container *SessionContainer) Add(name string, data interface{}) {
-	manager.add(container.sid, name, data)
+func (container *SessionContainer) Add(name string, data interface{}, expires ...uint64) {
+	if strings.TrimSpace(name) == "" {
+		dglog.Errorf("Can't add session, the sid[%s] name can't is null", container.sid)
+	}
+
+	if len(expires) > 0 {
+		container.expire = expires[0]
+	}
+
+	manager.add(container.sid, name, data, container.expire)
 }
 
 func (container *SessionContainer) Get(name string, data interface{}) {
+	if strings.TrimSpace(name) == "" {
+		dglog.Errorf("Can't get session, the sid[%s] name can't is null", container.sid)
+	}
 	manager.get(container.sid, name, data)
 }
 
 func (container *SessionContainer) Delete(name string) {
+	if strings.TrimSpace(name) == "" {
+		dglog.Errorf("Can't delete session, the sid[%s] name can't is null", container.sid)
+	}
 	manager.delete(container.sid, name)
 }
 
-func (manager *sessioneManager) add(sid string, name string, data interface{}) {
+func (manager *sessioneManager) add(sid string, name string, data interface{}, expire uint64) {
 	var dataBf bytes.Buffer
 	enc := gob.NewEncoder(&dataBf)
 
@@ -67,6 +83,7 @@ func (manager *sessioneManager) add(sid string, name string, data interface{}) {
 		dglog.Errorf("Session encode fail. sid:%s, name:%s, data:%v", sid, name, data)
 	}
 	dataMap[name] = dataBf.Bytes()
+	dataMap[name+"_expire"] = common.Uint64Tobytes(expire + uint64(time.Now().Unix()))
 	dglog.Debugf("Session encoder:sid:%s, name:%s, data:%v \n", sid, name, dataMap[name])
 	newData, err := json.Marshal(dataMap)
 
@@ -83,7 +100,19 @@ func (manager *sessioneManager) get(sid string, name string, data interface{}) {
 	oldData := h.Read(sid)
 	if oldData != nil {
 		json.Unmarshal(oldData, &dataMap)
+
+		if expireByte, ok1 := dataMap[name+"_expire"]; ok1 {
+			expire := common.BytesToUint64(expireByte)
+			// 判断是否删除过期
+			if expire > 0 && expire <= uint64(time.Now().Unix()) {
+				manager.delete(sid, name)
+				manager.delete(sid, name+"_expire")
+				return
+			}
+		}
+
 		if value, ok := dataMap[name]; ok {
+
 			dataBf := bytes.NewBuffer(value)
 			dglog.Debugf("Session decoder:sid:%s, name:%s, data:%v \n", sid, name, value)
 			dec := gob.NewDecoder(dataBf)
@@ -145,7 +174,7 @@ func GetSession(sid string) *SessionContainer {
 		sessionContainer := &SessionContainer{
 			sid:    sid,
 			m:      &sync.Mutex{},
-			expire: time.Now().Unix() + int64(time.Second*3600),
+			expire: 60,
 		}
 		manager.container[sid] = sessionContainer
 		return sessionContainer
@@ -173,7 +202,8 @@ func GenerateSid() (string, error) {
 	return sid, nil
 }
 
-func init() {
+// 初始化session
+func InitSession() {
 	manager = &sessioneManager{m: &sync.Mutex{}, container: make(map[string]*SessionContainer)}
 	// 设置FileStoreEntity为默认的session存储驱动
 	fs := handle.FileStoreEntity
@@ -182,4 +212,14 @@ func init() {
 		dglog.Errorf("Could not call FileStoreEntity open menthod:%v ", err)
 	}
 	manager.setHandle(fs)
+
+	go func() {
+		ticker := time.NewTicker(time.Second * 10)
+		for {
+			c := <-ticker.C
+			dglog.Debugf("start session Gc: %s \n", c.Format("2006-01-02T15:04:05-070000"))
+			manager.getHandle().Gc()
+		}
+	}()
+
 }

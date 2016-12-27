@@ -28,7 +28,7 @@ func (s *sessionController) Add(c *context.Context) {
 
 	getSeesion.Name = sessionName
 	getSeesion.Age = c.Request.Form.Get("age")
-	session.Add(sessionName, getSeesion)
+	session.Add(sessionName, getSeesion, 10)
 	c.WriteString("ok")
 }
 

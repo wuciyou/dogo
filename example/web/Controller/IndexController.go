@@ -11,6 +11,11 @@ type IndexController struct {
 	Age  int
 }
 
+func (index *IndexController) textEmoji(c *context.Context) {
+	c.GetSession().Add("name", "wuciyou")
+	c.Display("View/textEmoji.html")
+}
+
 func (index *IndexController) Index(c *context.Context) {
 
 	name := make(map[string]string)
@@ -43,6 +48,7 @@ func (index *IndexController) ReturnAuto(c *context.Context) {
 func init() {
 	index := &IndexController{}
 	router.GetRouter("/", index.Index)
+	router.GetRouter("/textEmoji", index.textEmoji)
 	router.GetRouter("/returnJson", index.ReturnJson)
 	router.GetRouter("/returnXml", index.ReturnXml)
 	router.GetRouter("/returnAuto", index.ReturnAuto)
