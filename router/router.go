@@ -14,6 +14,7 @@ import (
 type routerContainer struct {
 	ch     context.ContextHandle
 	method common.HttpMethod
+	host   string
 }
 
 type muxEntry struct {
@@ -56,6 +57,8 @@ func (r *muxEntry) set(pattern string, method common.HttpMethod, ch context.Cont
 	r.routerMap[pattern] = rc
 }
 
+// admin@index/index:get(b[])|post
+//
 func (r *muxEntry) Router(pattern string, ch context.ContextHandle) {
 	r.set(pattern, "", ch)
 }

@@ -28,6 +28,7 @@ STATIC_REQUST_PATH=/static/
 # 实际在项目中的存放目录： STATIC_ROOT_PATH + STATIC_REQUST_PATH
 STATIC_ROOT_PATH=./
 
+
 ##########################
 [SESSION]
 
@@ -43,4 +44,7 @@ DATA_CHAN_SIZE = 0
 # 日志记录级别
 # 目前仅支持 info 和 debug 两种级别
 LEVEL = debug
+
+[TEMPLATE]
+VIEW_DIR=./view
 `

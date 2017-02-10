@@ -72,7 +72,6 @@ func (fs *fileStore) Write(sid string, data []byte) {
 	sessionName := fmt.Sprintf("%s/%s.session", fs.getRootDir(), sid)
 
 	dglog.Debugf("Write session[sid:%s, data:%s]", sid, string(data))
-
 	ioutil.WriteFile(sessionName, data, os.ModePerm)
 
 }

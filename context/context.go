@@ -100,6 +100,12 @@ func (c *Context) AjaxReturn(data interface{}, format ...string) {
 }
 
 func (c *Context) Display(templateFile ...string) {
+	view_dir, _ := config.GetString("TEMPLATE.VIEW_DIR")
+
+	for k, v := range templateFile {
+		templateFile[k] = view_dir + "/" + v
+	}
+
 	t, err := template.ParseFiles(templateFile...)
 	if err != nil {
 		dglog.Errorf("ParseFiles fail:%s", err)
