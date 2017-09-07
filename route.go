@@ -2,17 +2,20 @@ package dogo
 
 import (
 	"net/http"
+	"path"
 	"strings"
 )
 
 type route struct {
 	rules map[string]route
 	h     handle
+	f     []filter
 }
 
 var Route = &route{rules: make(map[string]route)}
 
 type handle func(c *Context)
+type filter func(c *Context) bool
 
 func (r route) init(method string) {
 	if _, ok := r.rules[method]; !ok {
@@ -21,8 +24,8 @@ func (r route) init(method string) {
 }
 
 func (r route) Any(rule string, h handle) {
-	r.init("*")
-	(r.rules["*"]).addRoute(strings.Split(rule, "/"), h)
+	r.Get(rule, h)
+	r.Post(rule, h)
 }
 
 func (r route) Get(rule string, h handle) {
@@ -62,11 +65,10 @@ func (r route) addRoute(rule []string, h handle) {
 
 func (r route) checkRoute(request *http.Request) handle {
 	method := request.Method
-	url := strings.Split(request.RequestURI, "/")
+	// 将后缀去掉
+	requestUri := strings.TrimSuffix(request.URL.Path, path.Ext(request.URL.Path))
+	url := strings.Split(requestUri, "/")
 	h := r.checkMethod(method, url)
-	if h == nil {
-		h = r.checkMethod("*", url)
-	}
 	return h
 }
 
@@ -74,11 +76,28 @@ func (r route) checkMethod(method string, url []string) handle {
 	return (r.rules[strings.ToUpper(method)]).checkUrl(url)
 }
 
-func (r route) checkUrl(url []string) handle {
+func (r route) checkUrl(url []string) (h handle) {
 	if len(url) <= 0 {
 		return r.h
 	} else if len(url) > 1 && url[0] == "" {
 		url = url[1:]
 	}
-	return (r.rules[url[0]]).checkUrl(url[1:])
+
+	if nextRule, exist := r.rules[url[0]]; exist {
+		h = nextRule.checkUrl(url[1:])
+	}
+	if h == nil {
+		Dglog.Debugf("进行模糊匹配")
+		for k, v := range r.rules {
+			ok, err := path.Match(k, url[0])
+			if ok && err == nil {
+				h = v.checkUrl(url[1:])
+				if h != nil {
+					return
+				}
+				break
+			}
+		}
+	}
+	return
 }

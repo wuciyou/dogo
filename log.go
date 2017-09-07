@@ -38,7 +38,7 @@ func (l *dglog) SetOutput(w io.Writer) {
 }
 
 func (l *dglog) Output(s string) {
-	log.Output(2, s)
+	log.Output(3, s)
 }
 
 func (l *dglog) Flags() int {

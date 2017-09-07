@@ -35,6 +35,6 @@ func (app *appServe) do(w http.ResponseWriter, r *http.Request) {
 	if h == nil {
 		Dglog.Errorf("Not found page :%s", r.RequestURI)
 	} else {
-		h(&Context{R: r, W: w})
+		h(InitContext(w, r))
 	}
 }

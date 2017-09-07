@@ -1,0 +1,12 @@
+{
+  "WorkingDir": "{GOPATH}/src/github.com/wuciyou/dogo",
+  "SourceDir": [
+    "{GOPATH}/src/github.com/wuciyou/dogo",
+    "{GOPATH}/src/github.com/wuciyou/dogo/examples/blog",
+    "{GOPATH}/src/github.com/wuciyou/dogo/database"
+  ],
+  "SourceExt": [".go"],
+  "BuildCmd": "go build github.com/wuciyou/dogo/examples/blog",
+  "RunCmd": "blog",
+  "Decreasing": 1
+}
