@@ -1,0 +1,10 @@
+{
+  "WorkingDir": "{GOPATH}/src/github.com/wuciyou/dogo/examples/webqq",
+  "SourceDir": [
+    "{GOPATH}/src/github.com/wuciyou/dogo/examples/webqq",
+  ],
+  "SourceExt": [".go"],
+  "BuildCmd": "go build github.com/wuciyou/dogo/examples/webqq",
+  "RunCmd": "blog",
+  "Decreasing": 1
+}

@@ -13,7 +13,7 @@ var defaultConfig = dogoConfig{
 	// 服务相关配置
 	"SERVER": dogoConfig{
 		// 服务器监听端口
-		"WEB_PORT": 8008,
+		"WEB_PORT": 8108,
 		"WEB_IP":   "",
 		// web服务器名称（系统默认会添加到response headers返回头信息）
 		"WEB_NAME": "DoGoServerv/1.0",

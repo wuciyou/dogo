@@ -10,17 +10,9 @@ type Transation struct {
 	transationNum int
 }
 
-func NewModel(t *Transation) *Model {
-	model := &Model{transation: t}
-	return model
-}
-
 func NewTransation(db *sql.DB) *Transation {
 	t := &Transation{db: db}
 	return t
-}
-func A() {
-
 }
 
 /**
@@ -57,6 +49,5 @@ func (t *Transation) Commit() {
  *
  */
 func (t *Transation) Rollback() {
-	t.transationNum--
 	t.tx.Rollback()
 }

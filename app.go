@@ -3,6 +3,8 @@ package dogo
 import (
 	"fmt"
 	"net/http"
+	"path"
+	"strings"
 )
 
 type appServe struct {
@@ -13,6 +15,10 @@ type appServe struct {
 func App() *appServe {
 	var app = &appServe{conf: defaultConfig, serveMux: &http.ServeMux{}}
 	return app
+}
+
+func (app *appServe) Route() *route {
+	return route_entity
 }
 
 func (app *appServe) Run() {
@@ -31,10 +37,15 @@ func (app *appServe) do(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	Dglog.Debugf("pattern:%s", r.Form.Get("name"))
 
-	h := Route.checkRoute(r)
+	h := route_entity.checkRoute(r)
+	requestUri := strings.TrimSuffix(r.URL.Path, path.Ext(r.URL.Path))
+
 	if h == nil {
 		Dglog.Errorf("Not found page :%s", r.RequestURI)
 	} else {
-		h(InitContext(w, r))
+		ctx := InitContext(w, r)
+		if filter_entity.doFilter(requestUri, ctx) {
+			h(ctx)
+		}
 	}
 }
